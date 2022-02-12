@@ -66,7 +66,8 @@ def convert_to_whatsapp_format(data, only_first_n_messages=math.inf):
                 "duration_seconds": row["duration_seconds"],
                 "width": row["width"],
                 "height": row["height"],
-                "is_photo": is_photo
+                "is_photo": is_photo,
+                "thumbnail": row["thumbnail"]
             }
             message += "{filename} (file attached)\n".format(filename=filename)
 
@@ -88,6 +89,10 @@ def upload_file(client, peer, history_import_id, path, file, file_data):
     except Exception as e:
         print(e)
         sys.exit(1)
+
+    thumb = None
+    if not pd.isnull(file_data["thumbnail"]):
+        thumb = client.upload_file(path + "\\" + file_data["thumbnail"].replace("/", "\\"))
 
     # these extensions and mimetypes logic is based on original Telegram client for Android
     ext = pathlib.Path(file_name).suffix
@@ -123,7 +128,7 @@ def upload_file(client, peer, history_import_id, path, file, file_data):
         else:
             attributes = [types.DocumentAttributeImageSize(w, h)]
             media = types.InputMediaUploadedDocument(file=input_file, mime_type=mime_type,
-                                                     attributes=attributes)
+                                                     attributes=attributes, thumb=thumb)
     else:
         attributes = list()
         if media_type == "animation":
@@ -139,10 +144,13 @@ def upload_file(client, peer, history_import_id, path, file, file_data):
         if media_type == "audio_file":
             attributes.append(types.DocumentAttributeAudio(duration))
 
+        if media_type == "voice_message":
+            attributes.append(types.DocumentAttributeAudio(duration, True))
+
         if len(attributes) == 0:
             attributes.append(types.DocumentAttributeFilename(file_name=file_name))
 
-        media = types.InputMediaUploadedDocument(file=input_file, mime_type=mime_type, attributes=attributes)
+        media = types.InputMediaUploadedDocument(file=input_file, mime_type=mime_type, attributes=attributes, thumb=thumb)
 
     try:
         client(functions.messages.UploadImportedMediaRequest(
