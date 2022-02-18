@@ -16,4 +16,12 @@
 
 package com.valaphee.tregret
 
-fun main() = Unit
+import com.fasterxml.jackson.databind.DeserializationFeature
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
+import java.io.File
+
+fun jsonSanitize(path: File) {
+    val chat = jacksonObjectMapper().apply { disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES) }.readValue<Chat>(File(path, "result.json.in"))
+    jacksonObjectMapper().writeValue(File(path, "result.json"), Chat(chat.type, chat.messages.map { it.copy(from = it.from, photo = it.photo?.takeIf { File(path, it).exists() }) }))
+}

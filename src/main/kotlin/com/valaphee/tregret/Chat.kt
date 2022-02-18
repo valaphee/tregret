@@ -17,7 +17,10 @@
 package com.valaphee.tregret
 
 import com.fasterxml.jackson.annotation.JsonRawValue
+import com.fasterxml.jackson.databind.PropertyNamingStrategies
+import com.fasterxml.jackson.databind.annotation.JsonNaming
 
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy::class)
 data class Chat(
     val type: String,
     val messages: List<Message>
@@ -26,8 +29,8 @@ data class Chat(
         val id: Int,
         val type: String,
         val date: String,
-        val from: String,
-        val fromId: String,
+        val from: String?,
+        /*val fromId: String,*/
         val file: String?,
         val thumbnail: String?,
         val mediaType: String?,
@@ -37,6 +40,6 @@ data class Chat(
         val durationSeconds: Int?,
         val width: Int?,
         val height: Int?,
-        val text: String
+        val text: Any
     )
 }
